@@ -1,0 +1,269 @@
+openapi: 3.0.0
+info:
+  title: TO-DO APPLICATION
+  version: 1.0.0
+  description: documentation for Todo API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/courses/login:
+    post:
+      summary: user login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Arian
+                password:
+                  type: string
+                  example: test
+      responses:
+        200:
+          description: user logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  name:
+                    type: string
+                  accesstoken:
+                    type: string
+                  refreshtoken:
+                    type: string
+          400:
+            description: login failed
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+
+  /api/courses/logout:
+    post:
+      summary: logout user
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: user logedout succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: user cant logout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/courses/courses:
+    get:
+      summary: show all courses
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: show all courses succussfull
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+        400:
+          description: showing courses failled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/courses/course/{name}:
+    get:
+      summary: show specific course
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+          description: The name of the course
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: showed course succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: course dosent exist
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/create_course:
+    post:
+      summary: create new course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - duration
+                - time
+                - status
+              properties:
+                name:
+                  type: string
+                  example: javascript
+                duration:
+                  type: string
+                  example: 50 hours
+                time:
+                  type: string
+                  format: date-time
+                  example: 9:00 AM
+                status:
+                  type: string
+                  enum: [active, inactive, pending]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: course created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+        400:
+          description: couldn't create course
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/update_course/{name}:
+    put:
+      summary: update course information
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+          description: Course name to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Course updated succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: failled to create course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/courses/delete_course/{name}:
+    delete:
+      summary: delete course
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+          description: course name to delete
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: course deleted succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: failled to delete the course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/courses/refresh_token:
+    post:
+      summary: new accesstoken from refreshtoken
+      responses:
+        200:
+          description: new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        400:
+          description: failled to load new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Acessetoken:
+                    type: string

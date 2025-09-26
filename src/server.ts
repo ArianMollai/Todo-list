@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import app from "./app";
 import { env } from "./config/env";
 
+
+
 mongoose
   .connect(env.MONGO_URI)
   .then(() => {
