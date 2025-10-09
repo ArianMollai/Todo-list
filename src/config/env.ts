@@ -8,18 +8,19 @@ interface Env {
   REFRESH_TOKEN_SECRET: string | undefined;
 }
 
-export interface User {
-  id: number;
+export interface IUser {
+  _id: string;
   name: string;
   email: string;
   password: string;
   refreshtoken?: string | null;
+  courses: ICourse[];
 }
 
-export interface Course {
+export interface ICourse {
   name: string;
-  duration: string;
   time: string;
+  duration: string;
   status: string;
 }
 

@@ -1,26 +1,52 @@
 import { Response, Request } from "express";
 import {
-  repCourses,
-  repCourse,
-  repCreate,
-  repUpdate,
-  repDelete,
-  repNewAcessToken,
+  repSignUp,
   repLogin,
-  repLogout,
+  repUpdateUser,
+  repDeleteUser,
+  repRegisterCourse,
+  repUpdateCourse,
+  repDeleteCourse,
+  repShowDB,
+  repNewAccesstoken,
 } from "../repositories/repository";
-import { Course } from "../config/env";
 
-export const serLogin = async (
-  req: Request,
-  res: Response,
-  name: string,
-  password: string
-) => {
-  return await repLogin(req, res, name, password);
+export const serSignUp = async (req: Request, res: Response) => {
+  return await repSignUp(req, res);
 };
 
-export const serLogout = async (req: Request, res: Response) => {
+export const serLogin = async (req: Request, res: Response) => {
+  return await repLogin(req, res);
+};
+
+export const serUpdateUser = async (req: Request, res: Response) => {
+  return await repUpdateUser(req, res);
+};
+
+export const serDeleteUser = async (req: Request, res: Response) => {
+  return await repDeleteUser(req, res);
+};
+
+export const serRegisterCourse = async (req: Request, res: Response) => {
+  return await repRegisterCourse(req, res);
+};
+
+export const serUpdateCourse = async (req: Request, res: Response) => {
+  return await repUpdateCourse(req, res);
+};
+
+export const serDeleteCourse = async (req: Request, res: Response) => {
+  return await repDeleteCourse(req, res);
+};
+
+export const serShowDB = async (req: Request, res: Response) => {
+  return await repShowDB(req, res);
+};
+
+export const serNewAccesstoken = async (req: Request, res: Response) => {
+  return await repNewAccesstoken(req, res);
+};
+/*export const serLogout = async (req: Request, res: Response) => {
   return await repLogout(req, res);
 };
 
@@ -61,3 +87,4 @@ export const serDeleteCourse = async (
 export const serNewAccessToken = async (req: Request, res: Response) => {
   return await repNewAcessToken(req, res);
 };
+ */

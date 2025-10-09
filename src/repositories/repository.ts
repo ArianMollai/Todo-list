@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { compare } from "bcryptjs";
-import { verify, JwtPayload } from "jsonwebtoken";
-import Courses from "../models/models";
-import { Course, User, env } from "../config/env";
+import { hash, compare } from "bcryptjs";
+import { verify, JwtPayload, TokenExpiredError } from "jsonwebtoken";
+import { Courses, Users } from "../models/models";
+import { ICourse, IUser, env } from "../config/env";
 //import Courses from "../models/course.model";
 import userDB from "../userDB/userDB";
 import {
@@ -11,36 +11,212 @@ import {
   sendAccessToken,
   sendRefreshToken,
 } from "../utils/utils";
+import { promises } from "dns";
+import { ref } from "process";
+
+// sing up
+export const repSignUp = async (req: Request, res: Response) => {
+  const info = req.body;
+  try {
+    const sameUser: IUser | null = await Users.findOne({
+      email: req.body.email,
+    });
+    if (sameUser)
+      return res
+        .status(400)
+        .json({ message: "this email has been registered before" });
+    const user = await Users.create(info);
+    const password: string = info.password;
+    user.password = await hash(password, 10);
+    await user.save();
+    const accessToken: string = createAccessToken(String(user._id));
+    const refreshToken: string = createRefreshToken(String(user._id));
+    user.refreshtoken = refreshToken;
+    await user.save();
+    sendRefreshToken(res, refreshToken);
+    sendAccessToken(req, res, accessToken, user.courses);
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
 
 // login user
 export const repLogin = async (
   req: Request,
-  res: Response,
-  name: string,
-  password: string
+  res: Response
 ): Promise<void | Response> => {
+  const { name }: { name: string } = req.body;
+  const { password } = req.body;
   try {
-    const user: User | undefined = (userDB as User[]).find((user) => {
-      return user.name === name;
-    });
+    const user = await Users.findOne({ name });
     if (!user) return res.status(400).json({ message: "User dosent Exist" });
     const valid = await compare(password, user.password);
     if (!valid)
       return res.status(400).json({ message: "password is incorroct!" });
     // creating token
-    const accessToken: string = createAccessToken(user.id);
-    const refreshToken: string = createRefreshToken(user.id);
+    const accessToken: string = createAccessToken(String(user._id));
+    const refreshToken: string = createRefreshToken(String(user._id));
     user.refreshtoken = refreshToken;
+    await user.save();
     // sending tokens
     sendRefreshToken(res, refreshToken);
-    sendAccessToken(req, res, accessToken);
+    sendAccessToken(req, res, accessToken, user.courses);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
 };
 
+// Update user
+export const repUpdateUser = async (req: Request, res: Response) => {
+  const info = req.body;
+  try {
+    const user = await Users.findById(req.userId);
+    if (!user) return res.status(400).json({ message: "User dosent exists" });
+    if (info.password) {
+      info.password = await hash(info.password, 10);
+    }
+    const newUser = await Users.findByIdAndUpdate(req.userId, info, {
+      new: true,
+    });
+    return res.status(200).json(newUser);
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// delete user
+export const repDeleteUser = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const user: IUser | null = await Users.findByIdAndDelete(req.userId);
+    if (!user) return res.status(400).json({ message: "User dosent exists" });
+    return res.status(200).json({ message: "User deleted succussfully" });
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// register course
+export const repRegisterCourse = async (req: Request, res: Response) => {
+  const { name, duration, time, status } = req.query;
+  try {
+    const user = await Users.findById(req.userId);
+    if (!user) return res.status(400).json({ message: "User dosent exists" });
+    const sameCourse = user.courses.find((u) => {
+      return u.name === name;
+    });
+    if (sameCourse)
+      return res
+        .status(400)
+        .json({ message: "You have registered for this course before" });
+    const info: ICourse = {
+      name: String(name),
+      duration: String(duration),
+      time: String(time),
+      status: String(status),
+    };
+    user.courses.push(info);
+    await user.save();
+    return res.status(200).json(user);
+  } catch (error: any) {
+    return res.status(200).json({ message: error.message });
+  }
+};
+
+// update course
+export const repUpdateCourse = async (req: Request, res: Response) => {
+  const info = req.query;
+  const { course_name } = req.params;
+  try {
+    const user = await Users.findById(req.userId);
+    if (!user) return res.status(400).json({ message: "User dosent exists" });
+    let course: ICourse | undefined = user.courses.find((u) => {
+      return u.name === course_name;
+    });
+    if (!course)
+      return res
+        .status(400)
+        .json({ message: "You havent registered for this course" });
+    course.time = String(info.time);
+    course.duration = String(info.duration);
+    course.status = String(info.status);
+    await user.save();
+    return res.status(200).json(course);
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// delete course
+export const repDeleteCourse = async (req: Request, res: Response) => {
+  const { course_name } = req.query;
+  try {
+    const user = await Users.findById(req.userId);
+    if (!user) return res.status(400).json({ message: "User dosent exists" });
+    const courseLengthBefore = user.courses.length;
+    user.courses = user.courses.filter((u) => {
+      return u.name !== course_name;
+    });
+    const courseLengthAfter = user.courses.length;
+    if (courseLengthAfter === courseLengthBefore)
+      return res
+        .status(200)
+        .json({ message: "You didnt registered this course" });
+    await user.save();
+    return true;
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+// show database
+export const repShowDB = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const user: IUser[] | null = await Users.find();
+    return res.status(200).json(user);
+  } catch (error: any) {
+    return res.status(400).json({ messsage: error.message });
+  }
+};
+
+// new accesstoken
+export const repNewAccesstoken = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const refreshtoken: string = req.cookies.refreshtoken;
+  if (!refreshtoken)
+    return res.status(400).json({ message: "No refreshtoken provided" });
+  try {
+    const headers = req.headers["authorization"];
+    if (!headers)
+      return res.status(400).json({ message: "Please login or singup" });
+    const refreshPayload: JwtPayload = verify(
+      refreshtoken,
+      process.env.REFRESH_TOKEN_SECRET!
+    ) as JwtPayload;
+    const user = await Users.findById(refreshPayload.userId);
+    if (!user)
+      return res.status(400).json({ message: "Please signup or login" });
+    const refreshToken = createRefreshToken(user._id);
+    const accessToken = createAccessToken(user._id);
+    user.refreshtoken = refreshToken;
+    await user.save();
+    return res.status(200).json({ accesstoken: accessToken });
+  } catch (error: any) {
+    if (error instanceof TokenExpiredError)
+      return res.status(400).json({ message: "Please login again" });
+    return res.status(400).json({ message: error.message });
+  }
+};
+
 // logout user
-export const repLogout = async (req: Request, res: Response) => {
+/*export const repLogout = async (req: Request, res: Response) => {
   const token: string | undefined = req.cookies.refreshtoken;
   if (!token) return res.status(400).json("no user to logout!");
   const payload: JwtPayload | null = verify(
@@ -161,3 +337,4 @@ export const repNewAcessToken = async (req: Request, res: Response) => {
     return res.json({ message: error.message });
   }
 };
+ */

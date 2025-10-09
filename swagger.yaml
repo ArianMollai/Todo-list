@@ -13,6 +13,32 @@ components:
       bearerFormat: jwt
 
 paths:
+  /api/courses/signup:
+    post:
+      summary: sign up new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter you name please
+                email:
+                  type: string
+                  example: Enter your email please
+                password:
+                  type: string
+                  example: Enter your new password please
+      responses:
+        200:
+          description: User created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
   /api/courses/login:
     post:
       summary: user login
@@ -55,156 +81,149 @@ paths:
                     error:
                       type: string
 
-  /api/courses/logout:
-    post:
-      summary: logout user
+  /api/courses/update_user:
+    put:
+      summary: update user info
       security:
         - bearerAuth: []
-      responses:
-        200:
-          description: user logedout succussfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        400:
-          description: user cant logout
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/courses/courses:
-    get:
-      summary: show all courses
-      security:
-        - bearerAuth: []
-      responses:
-        200:
-          description: show all courses succussfull
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: object
-        400:
-          description: showing courses failled
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/courses/course/{name}:
-    get:
-      summary: show specific course
-      parameters:
-        - in: path
-          name: name
-          required: true
-          schema:
-            type: string
-          description: The name of the course
-      security:
-        - bearerAuth: []
-      responses:
-        200:
-          description: showed course succussfully
-          content:
-            application/json:
-              schema:
-                type: object
-        400:
-          description: course dosent exist
-          content:
-            application/json:
-              schema:
-                type: object
-
-  /api/courses/create_course:
-    post:
-      summary: create new course
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - name
-                - duration
-                - time
-                - status
               properties:
-                name:
+                Enter the field you want to change:
                   type: string
-                  example: javascript
-                duration:
-                  type: string
-                  example: 50 hours
-                time:
-                  type: string
-                  format: date-time
-                  example: 9:00 AM
-                status:
-                  type: string
-                  enum: [active, inactive, pending]
+                  example: Enter it's value
+      responses:
+        200:
+          description: User info updated succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/delete_user:
+    delete:
+      summary: Delete user
       security:
         - bearerAuth: []
       responses:
         200:
-          description: course created succussfully
+          description: User deleted succussfully
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  message:
+                    type: string
 
-        400:
-          description: couldn't create course
-          content:
-            application/json:
-              schema:
-                type: object
-
-  /api/courses/update_course/{name}:
-    put:
-      summary: update course information
+  /api/courses/register_course:
+    post:
+      summary: Register new course
+      security:
+        - bearerAuth: []
       parameters:
-        - in: path
+        - in: query
           name: name
           required: true
           schema:
             type: string
-          description: Course name to update
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
+            enum: [python, javascript, C#]
+          description: Enter course name
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: [10H, 50H, 100H, 150H]
+          description: Select your course duration
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: [9:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00]
+          description: Select course time
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: [not started, in progress, completed]
+          description: Select your course status
+      responses:
+        200:
+          description: course registered succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/update_course/{course_name}:
+    put:
+      summary: update course information
       security:
         - bearerAuth: []
+      parameters:
+        - in: path
+          name: course_name
+          required: true
+          schema:
+            type: string
+            enum: [python, javascript, C#]
+            default: Enter course name
+          description: course name
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: [9:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00]
+            default: Enter course time
+          description: course time
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: [10H, 50H, 100H, 150H]
+            default: Enter course duration
+          description: course duration
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: [not started, in progress, completed]
+            default: Enter course status
+          description: course status
       responses:
         200:
           description: Course updated succussfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        400:
-          description: failled to create course
+                type: string
+
+  /api/courses/delete_course:
+    delete:
+      summary: Delete course
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: course_name
+          required: true
+          schema:
+            type: string
+            enum: [python, javascript, C#]
+          description: Select a course to delete
+      responses:
+        200:
+          description: Course deleted succussfully
           content:
             application/json:
               schema:
@@ -212,22 +231,31 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: Course deleted succussfully
 
-  /api/courses/delete_course/{name}:
-    delete:
-      summary: delete course
-      parameters:
-        - in: path
-          name: name
-          required: true
+  /api/courses/showDB:
+    get:
+      summary: show database
+      content:
+        application/json:
           schema:
-            type: string
-          description: course name to delete
+            type: object
+      responses:
+        200:
+          description: database showed succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/access_token:
+    get:
+      summary: Get new accesstoken
       security:
         - bearerAuth: []
       responses:
         200:
-          description: course deleted succussfully
+          description: New accesstoken
           content:
             application/json:
               schema:
@@ -235,35 +263,4 @@ paths:
                 properties:
                   message:
                     type: string
-        400:
-          description: failled to delete the course
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-
-  /api/courses/refresh_token:
-    post:
-      summary: new accesstoken from refreshtoken
-      responses:
-        200:
-          description: new accesstoken
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-        400:
-          description: failled to load new accesstoken
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Acessetoken:
-                    type: string
+                    example: sklfvnfsjkvnjkfbjfkdb
