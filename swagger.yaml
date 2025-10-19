@@ -182,7 +182,6 @@ paths:
           schema:
             type: string
             enum: [9:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00]
-            default: Enter course time
           description: course time
         - in: query
           name: duration
@@ -190,7 +189,6 @@ paths:
           schema:
             type: string
             enum: [10H, 50H, 100H, 150H]
-            default: Enter course duration
           description: course duration
         - in: query
           name: status
@@ -198,7 +196,6 @@ paths:
           schema:
             type: string
             enum: [not started, in progress, completed]
-            default: Enter course status
           description: course status
       responses:
         200:

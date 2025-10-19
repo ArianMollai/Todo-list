@@ -128,6 +128,7 @@ export const repRegisterCourse = async (req: Request, res: Response) => {
 // update course
 export const repUpdateCourse = async (req: Request, res: Response) => {
   const info = req.query;
+  console.log(info);
   const { course_name } = req.params;
   try {
     const user = await Users.findById(req.userId);
