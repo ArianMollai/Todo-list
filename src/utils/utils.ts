@@ -1,17 +1,18 @@
 import { Request, Response, NextFunction } from "express";
+import { Types } from "mongoose";
 import userDB from "../userDB/userDB";
 import { JwtPayload, verify } from "jsonwebtoken";
 import { sign } from "jsonwebtoken";
 import "dotenv/config";
 import { env, IUser, ICourse } from "../config/env";
 
-export const createAccessToken = (userId: string): string => {
+export const createAccessToken = (userId: Types.ObjectId): string => {
   return sign({ userId }, env.ACCESS_TOKEN_SECRET as string, {
     expiresIn: "15m",
   });
 };
 
-export const createRefreshToken = (userId: string): string => {
+export const createRefreshToken = (userId: Types.ObjectId): string => {
   return sign({ userId }, env.REFRESH_TOKEN_SECRET as string, {
     expiresIn: "7d",
   });

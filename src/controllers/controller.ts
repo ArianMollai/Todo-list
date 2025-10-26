@@ -144,20 +144,7 @@ export const showCourse = async (
   }
 };
 
-// creating course
-export const createCourse = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const info: ICourse = req.body;
-  const { name } = req.body as { name: string };
-  try {
-    const course: ICourse | Response = await serCreateCourse(info, name, res);
-    res.json(course);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-};
+c
 
 // updating course
 export const updateCourse = async (req: Request, res: Response) => {

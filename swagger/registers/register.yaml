@@ -1,0 +1,92 @@
+openapi: 3.0.0
+info:
+  title: TO-DO APPLICATION
+  version: 1.0.0
+  description: documentation for Todo API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/registers/register:
+    post:
+      summary: Register new course
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter course name
+      responses:
+        200:
+          description: Course registered succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/registers/cancel_register/{name}:
+    delete:
+      summary: Cancel registration
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter course name
+      responses:
+        200:
+          description: Registeration canceled
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/registers/registers:
+    get:
+      summary: Show registrations
+      responses:
+        200:
+          description: Show registrations succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/registers/oneregister:
+    post:
+      summary: show one register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: Enter student name
+                coursename:
+                  type: string
+                  example: Enter student name
+      responses:
+        200:
+          description: Register showed succussfully
+          content:
+            application/json:
+              schema:
+                type: object

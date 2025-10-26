@@ -1,0 +1,149 @@
+openapi: 3.0.0
+info:
+  title: TODO-APPLICATION
+  version: 1.0.0
+  description: documentaion for courses Todo-API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/courses/create_course:
+    post:
+      summary: Create new course
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter course name
+      parameters:
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: [10H, 50H, 100H, 150H]
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: ["9:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-21:00"]
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: [not started, in progress, completed]
+      responses:
+        200:
+          description: Course created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/update_course/{name}:
+    put:
+      summary: Update course info
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+            example: Enter new course name
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: [10H, 50H, 100H, 150H]
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: [9:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00]
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: ["not started", "in progress", "completed"]
+      responses:
+        200:
+          description: Course created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/delete_course/{name}:
+    delete:
+      summary: Delete course
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Course deleted succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Course deleted succussfully
+
+  /api/courses/show_courses:
+    get:
+      summary: Show all courses
+      responses:
+        200:
+          description: Showed corses succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/courses/show_onecourse/{name}:
+    get:
+      summary: show one course
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Showed course succussfully
+          content:
+            application/json:
+              schema:
+                type: array

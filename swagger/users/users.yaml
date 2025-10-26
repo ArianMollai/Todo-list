@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: TO-DO APPLICATION
+  version: 1.0.0
+  description: documentation for users Todo API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/users/signup:
+    post:
+      summary: sign up new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter you name please
+                email:
+                  type: string
+                  example: Enter your email please
+                password:
+                  type: string
+                  example: Enter your new password please
+      responses:
+        200:
+          description: User created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/users/login:
+    post:
+      summary: user login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Arian
+                password:
+                  type: string
+                  example: test
+      responses:
+        200:
+          description: user logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  name:
+                    type: string
+                  accesstoken:
+                    type: string
+                  refreshtoken:
+                    type: string
+        400:
+          description: login failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/users/update_user:
+    put:
+      summary: update user info
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Enter the field you want to change:
+                  type: string
+                  example: Enter it's value
+      responses:
+        200:
+          description: User info updated succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/users/delete_user:
+    delete:
+      summary: Delete user
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User deleted succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/users/access_token:
+    get:
+      summary: Get new accesstoken
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: New accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: sklfvnfsjkvnjkfbjfkdb
+
+  /api/users/showDB:
+    get:
+      summary: show database
+      content:
+        application/json:
+          schema:
+            type: object
+      responses:
+        200:
+          description: database showed succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/users/show_oneuser/{name}:
+    get:
+      summary: Show one user
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+            example: Enter user name
+      responses:
+        200:
+          description: User showed succussfully
+          content:
+            application/json:
+              schema:
+                type: array

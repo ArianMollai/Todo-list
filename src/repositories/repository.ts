@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { hash, compare } from "bcryptjs";
 import { verify, JwtPayload, TokenExpiredError } from "jsonwebtoken";
-import { Courses, Users } from "../models/models";
-import { ICourse, IUser, env } from "../config/env";
+//import { Courses, Users } from "../models/models";
+import { User } from "../models/users/usermodel";
+import { Course } from "../models/courses/coursemodel";
+import { ICourse, IUser, env, IUserPopulated } from "../config/env";
 //import Courses from "../models/course.model";
-import userDB from "../userDB/userDB";
 import {
   createAccessToken,
   createRefreshToken,
@@ -15,22 +16,25 @@ import { promises } from "dns";
 import { ref } from "process";
 
 // sing up
-export const repSignUp = async (req: Request, res: Response) => {
+/* export const repSignUp = async (req: Request, res: Response) => {
   const info = req.body;
   try {
-    const sameUser: IUser | null = await Users.findOne({
+    const sameUser: IUser | null = await User.findOne({
       email: req.body.email,
     });
     if (sameUser)
       return res
         .status(400)
         .json({ message: "this email has been registered before" });
-    const user = await Users.create(info);
+    const newUser: IUser | null = await User.create(info);
+    const user: IUserPopulated | null = await User.findById(newUser._id)
+      .populate<{ courses: ICourse[] }>("courses", "name duration time status")
+      .exec();
+    if (!user) return res.status(400).json({ message: "can't create user" });
     const password: string = info.password;
     user.password = await hash(password, 10);
-    await user.save();
-    const accessToken: string = createAccessToken(String(user._id));
-    const refreshToken: string = createRefreshToken(String(user._id));
+    const accessToken: string = createAccessToken(user._id);
+    const refreshToken: string = createRefreshToken(user._id);
     user.refreshtoken = refreshToken;
     await user.save();
     sendRefreshToken(res, refreshToken);
@@ -38,24 +42,26 @@ export const repSignUp = async (req: Request, res: Response) => {
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // login user
-export const repLogin = async (
+/* export const repLogin = async (
   req: Request,
   res: Response
 ): Promise<void | Response> => {
   const { name }: { name: string } = req.body;
   const { password } = req.body;
   try {
-    const user = await Users.findOne({ name });
+    const user: IUserPopulated | null = await User.findOne({ name })
+      .populate<{ courses: ICourse[] }>("courses", "name duration time status")
+      .exec();
     if (!user) return res.status(400).json({ message: "User dosent Exist" });
     const valid = await compare(password, user.password);
     if (!valid)
       return res.status(400).json({ message: "password is incorroct!" });
     // creating token
-    const accessToken: string = createAccessToken(String(user._id));
-    const refreshToken: string = createRefreshToken(String(user._id));
+    const accessToken: string = createAccessToken(user._id);
+    const refreshToken: string = createRefreshToken(user._id);
     user.refreshtoken = refreshToken;
     await user.save();
     // sending tokens
@@ -64,46 +70,57 @@ export const repLogin = async (
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // Update user
-export const repUpdateUser = async (req: Request, res: Response) => {
+/* export const repUpdateUser = async (req: Request, res: Response) => {
   const info = req.body;
   try {
-    const user = await Users.findById(req.userId);
+    const user = await User.findById((req as any).userId);
     if (!user) return res.status(400).json({ message: "User dosent exists" });
     if (info.password) {
       info.password = await hash(info.password, 10);
     }
-    const newUser = await Users.findByIdAndUpdate(req.userId, info, {
+    const newUser = await User.findByIdAndUpdate((req as any).userId, info, {
       new: true,
     });
     return res.status(200).json(newUser);
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // delete user
-export const repDeleteUser = async (
+/* export const repDeleteUser = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   try {
-    const user: IUser | null = await Users.findByIdAndDelete(req.userId);
+    const user: IUser | null = await User.findByIdAndDelete(
+      (req as any).userId
+    );
     if (!user) return res.status(400).json({ message: "User dosent exists" });
     return res.status(200).json({ message: "User deleted succussfully" });
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
-// register course
+/* // register course
 export const repRegisterCourse = async (req: Request, res: Response) => {
   const { name, duration, time, status } = req.query;
   try {
-    const user = await Users.findById(req.userId);
+    const user: IUserPopulated | null = await User.findById((req as any).userId)
+      .populate<{ courses: ICourse[] }>("courses", "name duration time status")
+      .exec();
     if (!user) return res.status(400).json({ message: "User dosent exists" });
+
+    const course = await Course.findOne({ name });
+    if (!course)
+      return res
+        .status(400)
+        .json({ message: "This course isn't provided yet" });
+
     const sameCourse = user.courses.find((u) => {
       return u.name === name;
     });
@@ -111,29 +128,26 @@ export const repRegisterCourse = async (req: Request, res: Response) => {
       return res
         .status(400)
         .json({ message: "You have registered for this course before" });
-    const info: ICourse = {
-      name: String(name),
-      duration: String(duration),
-      time: String(time),
-      status: String(status),
-    };
-    user.courses.push(info);
+
+    user.courses.push(course);
     await user.save();
     return res.status(200).json(user);
   } catch (error: any) {
     return res.status(200).json({ message: error.message });
   }
-};
+}; */
 
 // update course
-export const repUpdateCourse = async (req: Request, res: Response) => {
+/* export const repUpdateCourse = async (req: Request, res: Response) => {
   const info = req.query;
   console.log(info);
   const { course_name } = req.params;
   try {
-    const user = await Users.findById(req.userId);
+    const user = await User.findById(req.userId)
+      .populate<{ courses: ICourse[] }>("courses", "name duration time status")
+      .exec();
     if (!user) return res.status(400).json({ message: "User dosent exists" });
-    let course: ICourse | undefined = user.courses.find((u) => {
+    let course = user.courses.find((u) => {
       return u.name === course_name;
     });
     if (!course)
@@ -148,13 +162,17 @@ export const repUpdateCourse = async (req: Request, res: Response) => {
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // delete course
-export const repDeleteCourse = async (req: Request, res: Response) => {
+/* export const repDeleteCourse = async (req: Request, res: Response) => {
   const { course_name } = req.query;
   try {
-    const user = await Users.findById(req.userId);
+    const user = await User.findById((req as any).userId)
+      .populate<{
+        courses: ICourse[];
+      }>("corses", "name duration time status")
+      .exec();
     if (!user) return res.status(400).json({ message: "User dosent exists" });
     const courseLengthBefore = user.courses.length;
     user.courses = user.courses.filter((u) => {
@@ -170,7 +188,7 @@ export const repDeleteCourse = async (req: Request, res: Response) => {
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // show database
 export const repShowDB = async (
@@ -178,7 +196,7 @@ export const repShowDB = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const user: IUser[] | null = await Users.find();
+    const user: IUser[] | null = await User.find();
     return res.status(200).json(user);
   } catch (error: any) {
     return res.status(400).json({ messsage: error.message });
@@ -186,7 +204,7 @@ export const repShowDB = async (
 };
 
 // new accesstoken
-export const repNewAccesstoken = async (
+/* export const repNewAccesstoken = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
@@ -201,7 +219,7 @@ export const repNewAccesstoken = async (
       refreshtoken,
       process.env.REFRESH_TOKEN_SECRET!
     ) as JwtPayload;
-    const user = await Users.findById(refreshPayload.userId);
+    const user = await User.findById(refreshPayload.userId);
     if (!user)
       return res.status(400).json({ message: "Please signup or login" });
     const refreshToken = createRefreshToken(user._id);
@@ -214,7 +232,7 @@ export const repNewAccesstoken = async (
       return res.status(400).json({ message: "Please login again" });
     return res.status(400).json({ message: error.message });
   }
-};
+}; */
 
 // logout user
 /*export const repLogout = async (req: Request, res: Response) => {

@@ -10,7 +10,7 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
       token,
       process.env.ACCESS_TOKEN_SECRET!
     ) as JwtPayload;
-    req.userId = accessPayload.userId;
+    (req as any).userId = accessPayload.userId;
     next();
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
