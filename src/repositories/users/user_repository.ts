@@ -1,174 +1,213 @@
-import { Request, Response } from "express";
-import { hash, compare } from "bcryptjs";
-import { verify, JwtPayload, TokenExpiredError } from "jsonwebtoken";
-import { User } from "../../models/users/usermodel";
-import { Course } from "../../models/courses/coursemodel";
-import { Register } from "../../models/registrations/registermodel";
-import { ICourse, IUser, env, IUserPopulated } from "../../config/env";
-import {
-  createAccessToken,
-  createRefreshToken,
-  sendAccessToken,
-  sendRefreshToken,
-} from "../../utils/utils";
-import { triggerAsyncId } from "async_hooks";
+import { hash, compare } from 'bcryptjs';
+import { ObjectId } from 'mongodb';
+import { verify, JwtPayload } from 'jsonwebtoken';
+import { User } from '../../models/users/usermodel';
+import { Course } from '../../models/courses/coursemodel';
+import { Register } from '../../models/registrations/registermodel';
+import { IUser, updatedUserInfo } from '../../types/user/types.user';
+import { ICourse } from '../../types/course/types.course';
+import { env } from '../../config/env';
+import zxcvbn from 'zxcvbn';
+import mongoose from 'mongoose';
 
 // sing up
-export const repSignUp = async (req: Request, res: Response) => {
-  const info = req.body;
-  try {
-    const sameUser: IUser | null = await User.findOne({
-      email: req.body.email,
-    });
-    if (sameUser)
-      return res
-        .status(400)
-        .json({ message: "this email has been registered before" });
-    info.password = await hash(info.password, 10);
-    const newUser: IUser | null = await User.create(info);
-    await newUser.populate<{ courses: ICourse[] }>(
-      "courses",
-      "name duration time status"
-    );
-    const accessToken: string = createAccessToken(newUser._id);
-    const refreshToken: string = createRefreshToken(newUser._id);
-    newUser.refreshtoken = refreshToken;
-    await newUser.save();
-    sendRefreshToken(res, refreshToken);
-    sendAccessToken(req, res, accessToken, newUser.courses as ICourse[]);
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+export const repSignUp = async (
+  name: string,
+  email: string,
+  password: string,
+) => {
+  const sameUser: IUser | null = await User.findOne({
+    email,
+  });
+  if (sameUser) {
+    const err: any = new Error('this email has been registered before');
+    err.statusCode = 403;
+    throw err;
   }
+  const strength = zxcvbn(password);
+  if (strength.score < 3) {
+    const err: any = new Error('Password is too weak');
+    err.statusCode = 401;
+    throw err;
+  }
+  const hashedPass = await hash(password, 10);
+  const newUser: IUser | null = await User.create({
+    name,
+    email,
+    password: hashedPass,
+  });
+  if (!newUser) {
+    const err: any = new Error('Cant create user');
+    err.statusCode = 403;
+    throw err;
+  }
+  await newUser.populate<{ courses: ICourse[] }>(
+    'courses',
+    'name duration time status',
+  );
+  return newUser;
 };
 
 // login user
 export const repLogin = async (
-  req: Request,
-  res: Response
-): Promise<void | Response> => {
-  const { name }: { name: string } = req.body;
-  const { password } = req.body;
-  try {
-    const user: IUser | null = await User.findOne({ name }).populate<{
-      courses: ICourse[];
-    }>("courses", "name duration time status");
-    if (!user) return res.status(400).json({ message: "User dosent Exist" });
-    const valid = await compare(password, user.password);
-    if (!valid)
-      return res.status(400).json({ message: "password is incorroct!" });
-    // creating token
-    const accessToken: string = createAccessToken(user._id);
-    const refreshToken: string = createRefreshToken(user._id);
-    user.refreshtoken = refreshToken;
-    await user.save();
-    // sending tokens
-    sendRefreshToken(res, refreshToken);
-    sendAccessToken(req, res, accessToken, user.courses as ICourse[]);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+  name: string,
+  password: string,
+): Promise<IUser> => {
+  const user: IUser | null = await User.findOne({ name }).populate<{
+    courses: ICourse[];
+  }>('courses', 'name duration time status');
+  if (!user) {
+    const err: any = new Error('User dosent Exist');
+    err.statusCode = 404;
+    throw err;
   }
+  const valid = await compare(password, user.password);
+  if (!valid) {
+    const err: any = new Error('password is incorroct!');
+    err.statusCode = 401;
+    throw err;
+  }
+  return user;
 };
 
 // Update user
-export const repUpdateUser = async (req: Request, res: Response) => {
-  const info = req.body;
-  try {
-    const user: IUser | null = await User.findById((req as any).userId);
-    if (!user) return res.status(400).json({ message: "User dosent exists" });
-    if (info.password) {
-      info.password = await hash(info.password, 10);
-    }
-    const newUser: IUser | null = await User.findByIdAndUpdate(
-      (req as any).userId,
-      info,
-      {
-        new: true,
-      }
-    ).populate<{ courses: ICourse[] }>("courses", "name duration time status");
-    return res.status(200).json(newUser);
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+export const repUpdateUser = async (id: ObjectId, info: updatedUserInfo) => {
+  const user: IUser | null = await User.findById(id);
+  if (!user) {
+    const err: any = new Error('User dosent Exist');
+    err.statusCode = 404;
+    throw err;
   }
+  if (info.password) {
+    info.password = await hash(info.password, 10);
+  }
+  const newUser: IUser | null = await User.findByIdAndUpdate(id, info, {
+    new: true,
+  }).populate<{ courses: ICourse[] }>('courses', 'name duration time status');
+
+  return newUser;
 };
 
 // delete user
-export const repDeleteUser = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  try {
-    const user: IUser | null = await User.findByIdAndDelete(
-      (req as any).userId
-    );
-    if (!user) return res.status(400).json({ message: "User dosent exists" });
+export const repDeleteUser = async (id: ObjectId) => {
+  if (process.env.NODE_ENV === 'test') {
+    const user: IUser | null = await User.findByIdAndDelete(id);
+    if (!user) {
+      const err: any = new Error('User dosent Exist');
+      err.statusCode = 404;
+      throw err;
+    }
     await Register.deleteMany({ student: user._id });
     await Course.updateMany(
       { students: user._id },
-      { $pull: { students: user._id } }
+      { $pull: { students: user._id } },
     );
-    return res.status(200).json({ message: "User deleted succussfully" });
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    return user;
   }
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const user: IUser | null =
+      await User.findByIdAndDelete(id).session(session);
+    if (!user) {
+      const err: any = new Error('User dosent Exist');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await Register.deleteMany({ student: user._id }).session(session);
+    await Course.updateMany(
+      { students: user._id },
+      { $pull: { students: user._id } },
+    ).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return user;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
+// logout
+export const repLogOut = async (id: ObjectId) => {
+  const user: IUser | null = await User.findById(id);
+  if (!user) {
+    const err: any = new Error('User dosent exists');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  if (user.refreshtoken === null) {
+    const err: any = new Error('You have logged out before');
+    err.statusCode = 403;
+    throw err;
+  }
+
+  user.refreshtoken = null;
+  await user.save();
+
+  return user;
 };
 
 // new accesstoken
-export const repNewAccesstoken = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const refreshtoken: string = req.cookies.refreshtoken;
-  if (!refreshtoken)
-    return res.status(400).json({ message: "No refreshtoken provided" });
-  try {
-    const headers = req.headers["authorization"];
-    if (!headers)
-      return res.status(400).json({ message: "Please login or singup" });
-    const refreshPayload: JwtPayload = verify(
-      refreshtoken,
-      process.env.REFRESH_TOKEN_SECRET!
-    ) as JwtPayload;
-    const user = await User.findById(refreshPayload.userId);
-    if (!user)
-      return res.status(400).json({ message: "Please signup or login" });
-    const refreshToken = createRefreshToken(user._id);
-    const accessToken = createAccessToken(user._id);
-    user.refreshtoken = refreshToken;
-    await user.save();
-    return res.status(200).json({ accesstoken: accessToken });
-  } catch (error: any) {
-    if (error instanceof TokenExpiredError)
-      return res.status(400).json({ message: "Please login again" });
-    return res.status(400).json({ message: error.message });
+export const repNewAccesstoken = async (refreshToken: string) => {
+  if (!refreshToken) {
+    const err: any = new Error('No refreshtoken provided');
+    err.statusCode = 401;
+    throw err;
   }
+  const refreshPayload: JwtPayload = verify(
+    refreshToken,
+    env.REFRESH_TOKEN_SECRET!,
+  ) as JwtPayload;
+  if (!refreshPayload) {
+    const err: any = new Error('Please login again');
+    err.statusCode = 401;
+    throw err;
+  }
+  const user = await User.findById(refreshPayload.userId);
+  if (!user) {
+    const err: any = new Error('User dosent Exist');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (user.refreshtoken !== refreshToken) {
+    const err: any = new Error('Invalid refreshtoken');
+    err.statusCode = 401;
+    throw err;
+  }
+  return user;
 };
 
 // show users
-export const repShowUsers = async (req: Request, res: Response) => {
-  try {
-    const users: IUser[] = await User.find().populate(
-      "courses",
-      "name duration time status"
-    );
-    if (users.length === 0)
-      return res.status(400).json({ message: "No users found" });
-    return res.status(200).json(users);
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+export const repShowUsers = async () => {
+  const users: IUser[] = await User.find().populate(
+    'courses',
+    'name duration time status',
+  );
+  if (users.length === 0) {
+    const err: any = new Error('No users found');
+    err.statusCode = 404;
+    throw err;
   }
+  return users;
 };
 
 // show one user
-export const repShowOneUser = async (req: Request, res: Response) => {
-  const { name } = req.params;
-  try {
-    const user: IUser[] = await User.find({ name }).populate<{
-      courses: ICourse[];
-    }>("courses", "name duration time status");
-    if (user.length === 0)
-      return res.status(400).json({ message: "This user dosen't exists" });
-    return res.status(200).json(user);
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+export const repShowOneUser = async (name: string) => {
+  const user: IUser[] | null = await User.find({ name }).populate<{
+    courses: ICourse[];
+  }>('courses', 'name duration time status');
+  if ((user as IUser[]).length === 0) {
+    const err: any = new Error('The user dosent exists');
+    err.statusCode = 404;
+    throw err;
   }
+  return user;
 };

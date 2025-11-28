@@ -1,14 +1,16 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-import { IRegister } from "../../config/env";
+import mongoose, { Schema, Model } from 'mongoose';
+import { IRegister } from '../../types/register/types.register';
 
 const registerSchema: Schema = new Schema<IRegister>({
   student: {
     type: Schema.Types.ObjectId,
-    ref: "users",
+    ref: 'users',
+    required: true,
   },
   course: {
     type: Schema.Types.ObjectId,
-    ref: "courses",
+    ref: 'courses',
+    required: true,
   },
   date: {
     type: Date,
@@ -17,6 +19,6 @@ const registerSchema: Schema = new Schema<IRegister>({
 });
 
 export const Register: Model<IRegister> = mongoose.model<IRegister>(
-  "registrations",
-  registerSchema
+  'registrations',
+  registerSchema,
 );

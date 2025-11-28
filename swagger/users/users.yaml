@@ -13,7 +13,7 @@ components:
       bearerFormat: jwt
 
 paths:
-  /api/users/signup:
+  /api/v1/users/signup:
     post:
       summary: sign up new user
       requestBody:
@@ -38,8 +38,47 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  name:
+                    type: string
+                    example: Arian
+                  email:
+                    type: string
+                    example: ar.mollaie82@gmail.com
+                  accesstoken:
+                    type: string
+                    example: dobjfoidbndoi
+                  courses:
+                    type: array
+                    example: []
+        403:
+          description: couldnt signup new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: this email has been registered before or Cant create user
+        401:
+          description: couldnt signup new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: Password is too weak
 
-  /api/users/login:
+  /api/v1/users/login:
     post:
       summary: user login
       requestBody:
@@ -49,6 +88,9 @@ paths:
             schema:
               type: object
               properties:
+                message:
+                  type: string
+                  example: wellcome in
                 name:
                   type: string
                   example: Arian
@@ -65,23 +107,44 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: wellcome in
                   name:
                     type: string
+                    example: Arian
                   accesstoken:
                     type: string
+                    example: flibvdaui
                   refreshtoken:
                     type: string
-        400:
+                    example: sfobddfhvbhb
+        404:
           description: login failed
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  success:
                     type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
+        401:
+          description: login failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: password is incorroct!
 
-  /api/users/update_user:
+  /api/v1/users/update_user:
     put:
       summary: update user info
       security:
@@ -103,8 +166,31 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  name:
+                    type: string
+                    example: Arian
+                  email:
+                    type: string
+                    example: ar.mollaie82@gmail.com
+                  courses:
+                    type: array
+                    example: []
+        404:
+          description: couldnt update user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
 
-  /api/users/delete_user:
+  /api/v1/users/delete_user:
     delete:
       summary: Delete user
       security:
@@ -119,8 +205,68 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: User Deleted succussfully
+        404:
+          description: couldnt delete user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
 
-  /api/users/access_token:
+  /api/v1/users/logout:
+    delete:
+      summary: log out user
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User logged out succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User logged out succussfully
+        404:
+          description: User dosent exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exists
+        403:
+          description: logged out before
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: You have logged out before
+
+  /api/v1/users/access_token:
     get:
       summary: Get new accesstoken
       security:
@@ -136,8 +282,34 @@ paths:
                   message:
                     type: string
                     example: sklfvnfsjkvnjkfbjfkdb
+        401:
+          description: couldnt get new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: No refreshtoken provided or Please login again or Invalid refreshtoken
+        404:
+          description: couldnt get new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
 
-  /api/users/showDB:
+  /api/v1/users/showDB:
     get:
       summary: show database
       content:
@@ -150,9 +322,31 @@ paths:
           content:
             application/json:
               schema:
+                type: array
+                example:
+                  [
+                    {
+                      name: js,
+                      duration: 100H,
+                      time: 9:00-12:00,
+                      status: completed,
+                    },
+                  ]
+        404:
+          description: couldnt show users
+          content:
+            application/json:
+              schema:
                 type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: No users found
 
-  /api/users/show_oneuser/{name}:
+  /api/v1/users/show_oneuser/{name}:
     get:
       summary: Show one user
       parameters:
@@ -169,3 +363,25 @@ paths:
             application/json:
               schema:
                 type: array
+                example:
+                  [
+                    {
+                      name: js,
+                      duration: 100H,
+                      time: 9:00-12:00,
+                      status: completed,
+                    },
+                  ]
+        404:
+          description: couldnt show user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: The user dosent exists

@@ -1,57 +1,92 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from 'express';
 import {
-  serNewCourse,
-  serUpdateCourse,
-  serDeleteCourse,
-  serShowCourses,
-  serShowOneCourse,
-} from "../../services/courses/courses_service";
-import { ICourse } from "../../config/env";
+  repNewCourse,
+  repUpdateCourse,
+  repDeleteCourse,
+  repShowCourses,
+  repShowOneCourse,
+} from '../../repositories/courses/course_repository';
+import { ICourse } from '../../types/course/types.course';
 
 // creating course
-export const createCourse = async (req: Request, res: Response) => {
+export const createCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const course_name = req.body.name;
+  const info = { ...req.query, name: course_name };
   try {
-    return await serNewCourse(req, res);
+    const course: ICourse | null = await repNewCourse(
+      (req as any).userId,
+      info,
+    );
+    return res.status(200).json(course);
   } catch (error: any) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // updating course
-export const updateCourse = async (req: Request, res: Response) => {
+export const updateCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { name } = req.params as { name: string };
-  const info = req.body;
+  const info = req.query;
   try {
-    const course: ICourse | Response = await serUpdateCourse(req, res);
-    res.json(course);
+    const course: ICourse | null = await repUpdateCourse(
+      (req as any).userId,
+      name,
+      info as any,
+    );
+    return res.status(200).json(course);
   } catch (error: any) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // deleting course
-export const deleteCourse = async (req: Request, res: Response) => {
+export const deleteCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { name } = req.params;
   try {
-    return await serDeleteCourse(req, res);
+    await repDeleteCourse((req as any).userId, name);
+    return res.status(200).json({ message: 'Course deleted succussfully' });
   } catch (error: any) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // show courses
-export const showCourses = async (req: Request, res: Response) => {
+export const showCourses = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    return await serShowCourses(req, res);
+    const courses: ICourse[] | null = await repShowCourses();
+    return res.status(200).json(courses);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
 // show one course
-export const showOneCourse = async (req: Request, res: Response) => {
+export const showOneCourse = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { name } = req.params;
   try {
-    return await serShowOneCourse(req, res);
+    const course: ICourse[] | null = await repShowOneCourse(name);
+    return res.status(200).json(course);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };

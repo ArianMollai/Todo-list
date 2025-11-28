@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+/* import { Request, Response } from "express";
 import {
   repNewCourse,
   repUpdateCourse,
@@ -26,3 +26,4 @@ export const serShowCourses = async (req: Request, res: Response) => {
 export const serShowOneCourse = async (req: Request, res: Response) => {
   return await repShowOneCourse(req, res);
 };
+ */

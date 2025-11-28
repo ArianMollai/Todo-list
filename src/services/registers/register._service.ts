@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+/* import { Request, Response } from "express";
 import {
   repRegister,
   repCanselRegister,
@@ -21,3 +21,4 @@ export const serShowRegisters = async (req: Request, res: Response) => {
 export const serShowOneRegister = async (req: Request, res: Response) => {
   return await repShowOneRegister(req, res);
 };
+ */

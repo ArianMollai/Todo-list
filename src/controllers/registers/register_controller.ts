@@ -1,39 +1,73 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from 'express';
 import {
-  serRegister,
-  serCanselResgister,
-  serShowRegisters,
-  serShowOneRegister,
-} from "../../services/registers/register._service";
+  repRegister,
+  repCanselRegister,
+  repShowRegisters,
+  repShowOneRegister,
+} from '../../repositories/registers/register_repository';
+import { IRegister } from '../../types/register/types.register';
+import { IUser } from '../../types/user/types.user';
 
-export const register = async (req: Request, res: Response) => {
+// new register
+export const register = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { name } = req.body;
   try {
-    return await serRegister(req, res);
+    const registeration: IRegister | null = await repRegister(
+      (req as any).userId,
+      name,
+    );
+    return res.status(200).json(registeration);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
-export const cancelRegister = async (req: Request, res: Response) => {
+// cancel register
+export const cancelRegister = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { name } = req.params;
   try {
-    return await serCanselResgister(req, res);
+    const updatedUser: IUser | null = await repCanselRegister(
+      (req as any).userId,
+      name,
+    );
+    return res.status(200).json(updatedUser);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
-export const showRegisters = async (req: Request, res: Response) => {
+// show registers
+export const showRegisters = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    return await serShowRegisters(req, res);
+    const registrations: IRegister[] | null = await repShowRegisters();
+    return res.status(200).json(registrations);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
-export const showOneRegister = async (req: Request, res: Response) => {
+export const showOneRegister = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const info = req.body;
   try {
-    return await serShowOneRegister(req, res);
+    const register: IRegister | null = await repShowOneRegister(info);
+    return res.status(200).json(register);
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    next(error);
   }
 };

@@ -1,20 +1,19 @@
-import { Request, Response, NextFunction } from "express";
-import { Types } from "mongoose";
-import userDB from "../userDB/userDB";
-import { JwtPayload, verify } from "jsonwebtoken";
-import { sign } from "jsonwebtoken";
-import "dotenv/config";
-import { env, IUser, ICourse } from "../config/env";
+import { Request, Response } from 'express';
+import { Types } from 'mongoose';
+import { sign } from 'jsonwebtoken';
+import 'dotenv/config';
+import { ICourse } from '../types/course/types.course';
+import { env } from '../config/env';
 
 export const createAccessToken = (userId: Types.ObjectId): string => {
   return sign({ userId }, env.ACCESS_TOKEN_SECRET as string, {
-    expiresIn: "15m",
+    expiresIn: '15m',
   });
 };
 
 export const createRefreshToken = (userId: Types.ObjectId): string => {
   return sign({ userId }, env.REFRESH_TOKEN_SECRET as string, {
-    expiresIn: "7d",
+    expiresIn: '7d',
   });
 };
 
@@ -22,10 +21,10 @@ export const sendAccessToken = (
   req: Request,
   res: Response,
   accessToken: string,
-  courses: ICourse[]
+  courses: ICourse[],
 ): Response => {
-  return res.json({
-    message: "Wellcome in",
+  return res.status(200).json({
+    message: 'Wellcome in',
     name: req.body.name,
     accessToken,
     courses: [courses],
@@ -33,8 +32,9 @@ export const sendAccessToken = (
 };
 
 export const sendRefreshToken = (res: Response, refreshToken: string): void => {
-  res.cookie("refreshtoken", refreshToken, {
+  res.cookie('refreshtoken', refreshToken, {
     httpOnly: true,
-    //path: "/refresh_token",
+    sameSite: 'strict',
+    path: '/api/v1/users/access_token',
   });
 };

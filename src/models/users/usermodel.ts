@@ -1,19 +1,23 @@
-import mongoose, { Schema, Model } from "mongoose";
-import { IUser } from "../../config/env";
-import { ref } from "process";
+import mongoose, { Schema, Model } from 'mongoose';
+import { IUser } from '../../types/user/types.user';
 
 const userSchema: Schema = new Schema<IUser>({
   name: {
     type: String,
-    requierd: true,
+    required: [true, 'Name is required'],
+    minLength: [1, 'Name is required'],
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
+    lowercase: true,
+    unique: true,
+    match: [/^\S+@\S+\.\S+$/, 'invalid email format'],
   },
   password: {
     type: String,
-    requierd: true,
+    minLength: [4, 'password must at least be 4 characters'],
+    required: [true, 'password is required'],
   },
   refreshtoken: {
     type: String,
@@ -22,9 +26,9 @@ const userSchema: Schema = new Schema<IUser>({
   courses: [
     {
       type: Schema.Types.ObjectId,
-      ref: "courses",
+      ref: 'courses',
     },
   ],
 });
 
-export const User: Model<IUser> = mongoose.model<IUser>("users", userSchema);
+export const User: Model<IUser> = mongoose.model<IUser>('users', userSchema);
