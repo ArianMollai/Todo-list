@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: TO-DO APPLICATION
+  version: 1.0.0
+  description: documentation for Todo API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/v1/registers/register:
+    post:
+      summary: Register new course
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter course name
+      responses:
+        200:
+          description: Course registered succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  student:
+                    type: string
+                    example: Arian
+                  course:
+                    type: string
+                    example: js
+        404:
+          description: couldnt register course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exist or course dosent exits
+        403:
+          description: couldnt register course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: You have registered for this course before
+
+  /api/v1/registers/cancel_register/{name}:
+    delete:
+      summary: Cancel registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+            example: Enter course name
+      responses:
+        200:
+          description: Registeration canceled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Arian
+                  email:
+                    type: string
+                    example: ar.mollaie82@gmail.completed
+                  courses:
+                    type: array
+                    example:
+                      [
+                        {
+                          name: js,
+                          duration: 100H,
+                          time: 9:00-12:00,
+                          status: completed,
+                        },
+                      ]
+        404:
+          description: couldnt cancel register course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exist or course dosent exits
+        403:
+          description: couldnt cancel register course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: You haven't regitered for this course before
+
+  /api/v1/registers/registers:
+    get:
+      summary: Show registrations
+      responses:
+        200:
+          description: Show registrations succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+        404:
+          description: couldnt show registers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: NO registers found
+
+  /api/v1/registers/oneregister:
+    post:
+      summary: show one register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: Enter student name
+                coursename:
+                  type: string
+                  example: Enter student name
+      responses:
+        200:
+          description: Register showed succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+        404:
+          description: couldnt show registers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exist or course dosent exits or No registers found

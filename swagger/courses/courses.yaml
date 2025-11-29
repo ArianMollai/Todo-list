@@ -1,0 +1,256 @@
+openapi: 3.0.0
+info:
+  title: TODO-APPLICATION
+  version: 1.0.0
+  description: documentaion for courses Todo-API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/v1/courses/create_course:
+    post:
+      summary: Create new course
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter course name
+      parameters:
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: ['10H', '50H', '100H', '150H']
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: ['9:00-12:00', '12:00-15:00', '15:00-18:00', '18:00-21:00']
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: ['not started', 'in progress', 'completed']
+      responses:
+        200:
+          description: Course created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: js
+                  duration:
+                    type: string
+                    example: 100H
+                  time:
+                    type: string
+                    example: 9:00-12:00
+                  status:
+                    type: string
+                    example: completed
+        404:
+          description: User dosent exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exists
+        500:
+          description: couldnt create course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: Couldnt create course
+
+  /api/v1/courses/update_course/{name}:
+    put:
+      summary: Update course info
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+            example: Enter new course name
+        - in: query
+          name: duration
+          required: true
+          schema:
+            type: string
+            enum: [10H, 50H, 100H, 150H]
+        - in: query
+          name: time
+          required: true
+          schema:
+            type: string
+            enum: [9:00-12:00, 12:00-15:00, 15:00-18:00, 18:00-21:00]
+        - in: query
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: ['not started', 'in progress', 'completed']
+      responses:
+        200:
+          description: Course updated succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: js
+                  duration:
+                    type: string
+                    example: 100H
+                  time:
+                    type: string
+                    example: 9:00-12:00
+                  status:
+                    type: string
+                    example: completed
+        404:
+          description: Couldnt update course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exists or course not found
+
+  /api/v1/courses/delete_course/{name}:
+    delete:
+      summary: Delete course
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Course deleted succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: true
+                  message:
+                    type: string
+                    example: Course deleted succussfully
+        404:
+          description: Couldnt delete course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exists or course not found
+
+  /api/v1/courses/show_courses:
+    get:
+      summary: Show all courses
+      responses:
+        200:
+          description: Showed corses succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+        404:
+          description: Couldnt show courses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: No course found
+
+  /api/v1/courses/show_onecourse/{name}:
+    get:
+      summary: show one course
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Showed course succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+        404:
+          description: Couldnt show course
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: This course dosent exists

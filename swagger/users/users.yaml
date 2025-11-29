@@ -1,0 +1,387 @@
+openapi: 3.0.0
+info:
+  title: TO-DO APPLICATION
+  version: 1.0.0
+  description: documentation for users Todo API
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+
+paths:
+  /api/v1/users/signup:
+    post:
+      summary: sign up new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Enter you name please
+                email:
+                  type: string
+                  example: Enter your email please
+                password:
+                  type: string
+                  example: Enter your new password please
+      responses:
+        200:
+          description: User created succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Arian
+                  email:
+                    type: string
+                    example: ar.mollaie82@gmail.com
+                  accesstoken:
+                    type: string
+                    example: dobjfoidbndoi
+                  courses:
+                    type: array
+                    example: []
+        403:
+          description: couldnt signup new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: this email has been registered before or Cant create user
+        401:
+          description: couldnt signup new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seccuss:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: Password is too weak
+
+  /api/v1/users/login:
+    post:
+      summary: user login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: wellcome in
+                name:
+                  type: string
+                  example: Arian
+                password:
+                  type: string
+                  example: test
+      responses:
+        200:
+          description: user logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: wellcome in
+                  name:
+                    type: string
+                    example: Arian
+                  accesstoken:
+                    type: string
+                    example: flibvdaui
+                  refreshtoken:
+                    type: string
+                    example: sfobddfhvbhb
+        404:
+          description: login failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
+        401:
+          description: login failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: password is incorroct!
+
+  /api/v1/users/update_user:
+    put:
+      summary: update user info
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Enter the field you want to change:
+                  type: string
+                  example: Enter it's value
+      responses:
+        200:
+          description: User info updated succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Arian
+                  email:
+                    type: string
+                    example: ar.mollaie82@gmail.com
+                  courses:
+                    type: array
+                    example: []
+        404:
+          description: couldnt update user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
+
+  /api/v1/users/delete_user:
+    delete:
+      summary: Delete user
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User deleted succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User Deleted succussfully
+        404:
+          description: couldnt delete user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
+
+  /api/v1/users/logout:
+    delete:
+      summary: log out user
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User logged out succussfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User logged out succussfully
+        404:
+          description: User dosent exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent exists
+        403:
+          description: logged out before
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: You have logged out before
+
+  /api/v1/users/access_token:
+    get:
+      summary: Get new accesstoken
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: New accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: sklfvnfsjkvnjkfbjfkdb
+        401:
+          description: couldnt get new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: No refreshtoken provided or Please login again or Invalid refreshtoken
+        404:
+          description: couldnt get new accesstoken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: User dosent Exist
+
+  /api/v1/users/showDB:
+    get:
+      summary: show database
+      content:
+        application/json:
+          schema:
+            type: object
+      responses:
+        200:
+          description: database showed succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+                example:
+                  [
+                    {
+                      name: js,
+                      duration: 100H,
+                      time: 9:00-12:00,
+                      status: completed,
+                    },
+                  ]
+        404:
+          description: couldnt show users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: No users found
+
+  /api/v1/users/show_oneuser/{name}:
+    get:
+      summary: Show one user
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+            example: Enter user name
+      responses:
+        200:
+          description: User showed succussfully
+          content:
+            application/json:
+              schema:
+                type: array
+                example:
+                  [
+                    {
+                      name: js,
+                      duration: 100H,
+                      time: 9:00-12:00,
+                      status: completed,
+                    },
+                  ]
+        404:
+          description: couldnt show user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: false
+                  message:
+                    type: string
+                    example: The user dosent exists
